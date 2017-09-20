@@ -245,21 +245,21 @@ class client:
         attempt_count = 1
         while (not self.connected) and (attempt_count < self.config['connection']['MAX_RETRY']):
             if(self.use_sasl != None and attempt_count == 1):
-	    	    if(self.user_name != None and self.password != None):
-			        self.send_server('CAP REQ :sasl')
-			        time.sleep(self.config['connection']['SLEEP'])
-			        self.send_server('AUTHENTICATE PLAIN')
-           		    time.sleep(self.config['connection']['SLEEP'])
-			        self.send_server('AUTHENTICATE '+base64.b64encode(self.user_name+"\0"
-					    +self.user_name+"\0"
-					    +self.password))
-            		time.sleep(self.config['connection']['SLEEP'])
-			    self.send_server('CAP END')
-		    else:
-			    print('A Username and Password are required to user SASL')
+                if(self.user_name != None and self.password != None):
+                    self.send_server('CAP REQ :sasl')
+                    time.sleep(self.config['connection']['SLEEP'])
+                    self.send_server('AUTHENTICATE PLAIN')
+                    time.sleep(self.config['connection']['SLEEP'])
+                    self.send_server('AUTHENTICATE '+base64.b64encode(self.user_name+"\0"
+                        +self.user_name+"\0"
+                        +self.password))
+                    time.sleep(self.config['connection']['SLEEP'])
+                    self.send_server('CAP END')
+                else:
+                    print('A Username and Password are required to user SASL')
 
-	        if(self.password != None and self.use_sasl == None):
-                self.send_server('PASS '+self.password)
+                if(self.password != None and self.use_sasl == None):
+                    self.send_server('PASS '+self.password)
 
             self.send_server('USER '+self.user_name+' '
                                     +self.host_name+' '
