@@ -8,6 +8,7 @@ import sys
 import time
 import os
 import logging
+import base64
 
 import event
 import channel
@@ -44,7 +45,7 @@ class client:
 
     MSG_MAXLEN = 512
 
-    def __init__(self, host, port=6667, use_ssl=False, password=None,
+    def __init__(self, host, port=6667, use_ssl=False, use_sasl=False, password=None,
                  oper=None, nickserv=None, config=None):
         self.socket = None
         self.channels = {}
@@ -55,6 +56,7 @@ class client:
         self.host      = host
         self.port      = port
         self.use_ssl   = use_ssl
+        self.use_sasl  = use_sasl
         self.password  = password
         self.connected = 0
         self.oper      = oper
@@ -101,7 +103,7 @@ class client:
 
 
     ###############################
-    ### Event loading functions ###
+    ### Event loading functions ###
     ###############################
     def load_events(self):
         reload(event)
@@ -242,7 +244,21 @@ class client:
 
         attempt_count = 1
         while (not self.connected) and (attempt_count < self.config['connection']['MAX_RETRY']):
-            if(self.password != None):
+            if(self.use_sasl != None and attempt_count == 1):
+	    	    if(self.user_name != None and self.password != None):
+			        self.send_server('CAP REQ :sasl')
+			        time.sleep(self.config['connection']['SLEEP'])
+			        self.send_server('AUTHENTICATE PLAIN')
+           		    time.sleep(self.config['connection']['SLEEP'])
+			        self.send_server('AUTHENTICATE '+base64.b64encode(self.user_name+"\0"
+					    +self.user_name+"\0"
+					    +self.password))
+            		time.sleep(self.config['connection']['SLEEP'])
+			    self.send_server('CAP END')
+		    else:
+			    print('A Username and Password are required to user SASL')
+
+	        if(self.password != None and self.use_sasl == None):
                 self.send_server('PASS '+self.password)
 
             self.send_server('USER '+self.user_name+' '
@@ -255,7 +271,7 @@ class client:
             if(self.oper != None):
                 self.send_server('OPER '+self.user_name+' '+self.oper)
 
-            if(self.nickserv != None):
+            if(self.nickserv != None and self.use_sasl == None):
                 self.priv_msg('NickServ', 'IDENTIFY '+self.nickserv)
             time.sleep(self.config['connection']['SLEEP'])
             attempt_count += 1

@@ -23,12 +23,14 @@ def main():
             help='OP', default=None)
     parser.add_argument('--use-ssl', action='store_true', dest='ssl',
             help='Connect using a secure connection', default=False)
+    parser.add_argument('--use-sasl', action='store_true', dest='sasl',
+            help='Connect using a SASL authentication', default=False)
 
     results = parser.parse_args()
     with open(results.config) as json_file:
         config = json.load(json_file)
 
-    c = client(results.host, results.port, results.ssl, results.password,
+    c = client(results.host, results.port, results.ssl, results.sasl, results.password,
             results.oper, results.nickserv, config)
 
     try :
